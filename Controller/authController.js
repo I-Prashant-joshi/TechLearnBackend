@@ -131,6 +131,49 @@ const forgotPassword= async(req, res, next)=>{
     })
   }
 }
+const generatePassword = async (req, res, next) => {
+  try {
+    const searchToken = req.query.code;
+    if (!searchToken) {
+      return res.status(400).json({
+        status: "error",
+        message: "Token not found",
+      });
+    }
+
+    const user = await UserModel.findOne({
+      passwordResetToken:searchToken,
+      passwordTokenExpire: { $gt: Date.now() },
+    });
+    console.log("token====>",user,searchToken);
+    
+
+    if (!user) {
+      return res.status(400).json({
+        status: "error",
+        message: "Token has expired or is invalid",
+      });
+    }
+
+    user.password = req.body.password;
+    user.passwordResetToken = undefined;
+    user.passwordTokenExpire = undefined;
+    await user.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Password updated successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+};
+
 
 const verifyotp = async(req,res,next) => {
   const {email,otp}= req.body;
@@ -182,4 +225,4 @@ if(userData.otp==undefined){
 }
 
 
-module.exports={register,sendOtp,verifyotp,forgotPassword}
+module.exports={register,sendOtp,verifyotp,forgotPassword,generatePassword}
