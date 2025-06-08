@@ -12,6 +12,10 @@ const sendOtpMail = async (args) => {
         user: mymail,
         pass: process.env.EMAIL_PASS, // Use environment variable for password
       },
+      secure:true,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     const info = await transporter.sendMail({
